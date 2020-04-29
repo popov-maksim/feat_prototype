@@ -11,7 +11,7 @@ const remoteVideo = document.getElementById('remote-video');
 const localVideo = document.getElementById('local-video');
 
 // for transferring video through WebRTC
-const { RTCPeerConnection, RTCSessionDescription } = window;
+const {RTCPeerConnection, RTCSessionDescription} = window;
 const peerConnection = new RTCPeerConnection();
 const serverAddress = "localhost:5000";
 
@@ -75,11 +75,11 @@ function updateUserList(socketIds) {
 
 const socket = io.connect(serverAddress);
 
-socket.on("update-user-list", ({ users }) => {
+socket.on("update-user-list", ({users}) => {
     updateUserList(users);
 });
 
-socket.on("remove-user", ({ socketId }) => {
+socket.on("remove-user", ({socketId}) => {
     const elToRemove = document.getElementById(socketId);
 
     if (elToRemove) {
@@ -131,7 +131,7 @@ socket.on("call-rejected", data => {
     unselectUsersFromList();
 });
 
-peerConnection.ontrack = function({ streams: [stream] }) {
+peerConnection.ontrack = function ({streams: [stream]}) {
     if (remoteVideo) {
         remoteVideo.srcObject = stream;
         remoteVideo.play();
@@ -140,7 +140,7 @@ peerConnection.ontrack = function({ streams: [stream] }) {
 };
 
 navigator.getUserMedia(
-    { video: true, audio: false },
+    {video: true, audio: false},
     stream => {
         if (localVideo) {
             localVideo.srcObject = stream;

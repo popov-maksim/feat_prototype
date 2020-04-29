@@ -27,40 +27,38 @@ function detectBody() {
     cameraFrame = requestAnimFrame(detectBody);
 }
 
-window.requestAnimFrame = (function() {
-    return  window.requestAnimationFrame       ||
+window.requestAnimFrame = (function () {
+    return window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
-        window.mozRequestAnimationFrame    ||
-        window.oRequestAnimationFrame      ||
-        window.msRequestAnimationFrame     ||
-        function( callback ){
+        window.mozRequestAnimationFrame ||
+        window.oRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        function (callback) {
             window.setTimeout(callback, 1000 / 60);
         };
 })();
 
-function drawBody(personSegmentation)
-{
+function drawBody(personSegmentation) {
     ctx.drawImage(remoteVideo, 0, 0);
-    const remotePixels = ctx.getImageData(0,0, remoteVideo.width, remoteVideo.height).data;
+    let remoteImageData = ctx.getImageData(0, 0, remoteVideo.width, remoteVideo.height);
+    let remotePixels = remoteImageData.data;
 
-    const tempCanvas = document.createElement('canvas')
+    let tempCanvas = document.createElement('canvas')
     tempCanvas.width = localVideo.width
     tempCanvas.height = localVideo.height
-    const tempCtx = tempCanvas.getContext('2d')
+    let tempCtx = tempCanvas.getContext('2d')
+
     tempCtx.drawImage(localVideo, 0, 0, localVideo.width, localVideo.height);
-    const imageData = tempCtx.getImageData(0,0, localVideo.width, localVideo.height);
-    const pixels = imageData.data;
-    for (let p = 0; p < pixels.length; p += 4)
-    {
-        if (personSegmentation.data[p / 4] === 0) {
-            // pixels[p + 3] = 0;
-            pixels[p] = remotePixels[p];
-            pixels[p + 1] = remotePixels[p + 1];
-            pixels[p + 2] = remotePixels[p + 2];
-            console.log("LOOK HERE", remotePixels[p], pixels[p]);
+    let imageData = tempCtx.getImageData(0, 0, localVideo.width, localVideo.height);
+    let pixels = imageData.data;
+
+    for (let p = 0; p < pixels.length; p += 4) {
+        if (personSegmentation.data[p / 4] !== 0) {
+            remotePixels[p] = pixels[p];
+            remotePixels[p + 1] = pixels[p + 1];
+            remotePixels[p + 2] = pixels[p + 2];
         }
     }
 
-    ctx.imageSmoothingEnabled = true;
-    ctx.putImageData(imageData, 0, 0);
+    ctx.putImageData(remoteImageData, 0, 0);
 }
