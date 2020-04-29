@@ -11,6 +11,8 @@
     />
     <link rel="stylesheet" href="./styles.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@1.0.0"></script>
 </head>
 <body>
 <div class="container">
@@ -31,12 +33,16 @@
                 Select active user on the left menu.
             </h2>
             <div class="video-container">
-                <video autoplay class="remote-video" id="remote-video"></video>
-                <video autoplay muted class="local-video" id="local-video"></video>
+                <video autoplay muted class="local-video" id="local-video" width="640" height="480" hidden></video>
+                <div id="background-container">
+                    <video autoplay muted class="remote-video" id="remote-video" width="640" height="480" hidden></video>
+                    <canvas id="canvas" width="640" height="480"></canvas>
+                </div>
             </div>
         </div>
     </div>
 </div>
+<script src="scripts/segmentation.js"></script>
 <script src="scripts/index.js"></script>
 </body>
 </html>

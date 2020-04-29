@@ -87,19 +87,13 @@ body {
     font-size: 21px;
 }
 
-.remote-video {
-    border: 1px solid #cddfe7;
-    width: 70%;
-    height: 80%;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-}
-
-.local-video {
-    position: absolute;
-    border: 1px solid #cddfe7;
-    bottom: 60px;
-    right: 40px;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    width: 300px;
-}
+/*#canvas {*/
+/*    position: fixed;*/
+/*    bottom: 0;*/
+/*    left: 0;*/
+/*    width: 100vw;*/
+/*    height: 100vh;*/
+/*    transform: translateZ(0);*/
+/*    -webkit-transform: translateZ(0);*/
+/*    -moz-transform: translateZ(0);*/
+/*}*/

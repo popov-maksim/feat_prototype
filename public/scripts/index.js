@@ -1,11 +1,19 @@
+// for making call
 let isAlreadyCalling = false;
 let getCalled = false;
 
-const existingCalls = [];
+// for transferring remote-video to canvas
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const remoteVideo = document.getElementById('remote-video');
 
+// for getting localVideo
+const localVideo = document.getElementById('local-video');
+
+// for transferring video through WebRTC
 const { RTCPeerConnection, RTCSessionDescription } = window;
-
 const peerConnection = new RTCPeerConnection();
+const serverAddress = "localhost:5000";
 
 function unselectUsersFromList() {
     const alreadySelectedUser = document.querySelectorAll(
@@ -63,7 +71,9 @@ function updateUserList(socketIds) {
     });
 }
 
-const socket = io.connect("localhost:5000");
+// communication with server and another clients
+
+const socket = io.connect(serverAddress);
 
 socket.on("update-user-list", ({ users }) => {
     updateUserList(users);
@@ -122,18 +132,19 @@ socket.on("call-rejected", data => {
 });
 
 peerConnection.ontrack = function({ streams: [stream] }) {
-    const remoteVideo = document.getElementById("remote-video");
     if (remoteVideo) {
         remoteVideo.srcObject = stream;
+        remoteVideo.play();
+        startDetectBody()
     }
 };
 
 navigator.getUserMedia(
     { video: true, audio: false },
     stream => {
-        const localVideo = document.getElementById("local-video");
         if (localVideo) {
             localVideo.srcObject = stream;
+            localVideo.play()
         }
         stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
     },
@@ -141,3 +152,4 @@ navigator.getUserMedia(
         console.warn(error.message);
     }
 );
+
