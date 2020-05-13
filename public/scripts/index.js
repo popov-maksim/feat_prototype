@@ -1,6 +1,5 @@
 // for making call
 let isAlreadyCalling = false;
-let getCalled = false;
 
 // for transferring remote-video to canvas
 const canvas = document.getElementById('canvas');
@@ -11,41 +10,22 @@ const remoteVideo = document.getElementById('remote-video');
 const localVideo = document.getElementById('local-video');
 
 // for transferring video through WebRTC
-const {RTCPeerConnection, RTCSessionDescription} = window;
+const { RTCPeerConnection, RTCSessionDescription } = window;
 const peerConnection = new RTCPeerConnection();
 const serverAddress = "localhost:5000";
 
-function unselectUsersFromList() {
-    const alreadySelectedUser = document.querySelectorAll(
-        ".active-user.active-user--selected"
-    );
+// communication with server and another clients
 
-    alreadySelectedUser.forEach(el => {
-        el.setAttribute("class", "active-user");
-    });
+const socket = io.connect(serverAddress);
+
+function switchToVideo() {
+    document.getElementById("welcome").style.display = "none";
+    document.getElementById("video-chat-container").style.display = "block";
 }
 
-function createUserItemContainer(socketId) {
-    const userContainerEl = document.createElement("div");
-
-    const usernameEl = document.createElement("p");
-
-    userContainerEl.setAttribute("class", "active-user");
-    userContainerEl.setAttribute("id", socketId);
-    usernameEl.setAttribute("class", "username");
-    usernameEl.innerHTML = `Socket: ${socketId}`;
-
-    userContainerEl.appendChild(usernameEl);
-
-    userContainerEl.addEventListener("click", () => {
-        unselectUsersFromList();
-        userContainerEl.setAttribute("class", "active-user active-user--selected");
-        const talkingWithInfo = document.getElementById("talking-with-info");
-        talkingWithInfo.innerHTML = `Talking with: "Socket: ${socketId}"`;
-        callUser(socketId);
-    });
-
-    return userContainerEl;
+function switchToWelcome() {
+    document.getElementById("video-chat-container").style.display = "none";
+    document.getElementById("welcome").style.display = "block";
 }
 
 async function callUser(socketId) {
@@ -58,53 +38,16 @@ async function callUser(socketId) {
     });
 }
 
-function updateUserList(socketIds) {
-    const activeUserContainer = document.getElementById("active-user-container");
-
-    socketIds.forEach(socketId => {
-        const alreadyExistingUser = document.getElementById(socketId);
-        if (!alreadyExistingUser) {
-            const userContainerEl = createUserItemContainer(socketId);
-
-            activeUserContainer.appendChild(userContainerEl);
-        }
-    });
-}
-
-// communication with server and another clients
-
-const socket = io.connect(serverAddress);
-
-socket.on("update-user-list", ({users}) => {
-    updateUserList(users);
+socket.on("connected-user", async data => {
+    callUser(data.socket)
 });
 
-socket.on("remove-user", ({socketId}) => {
-    const elToRemove = document.getElementById(socketId);
-
-    if (elToRemove) {
-        elToRemove.remove();
-    }
+socket.on("disconnected-user", async data => {
+    switchToWelcome();
 });
 
 socket.on("call-made", async data => {
-    if (getCalled) {
-        const confirmed = confirm(
-            `User "Socket: ${data.socket}" wants to call you. Do accept this call?`
-        );
-
-        if (!confirmed) {
-            socket.emit("reject-call", {
-                from: data.socket
-            });
-
-            return;
-        }
-    }
-
-    await peerConnection.setRemoteDescription(
-        new RTCSessionDescription(data.offer)
-    );
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
 
@@ -112,7 +55,6 @@ socket.on("call-made", async data => {
         answer,
         to: data.socket
     });
-    getCalled = true;
 });
 
 socket.on("answer-made", async data => {
@@ -126,25 +68,21 @@ socket.on("answer-made", async data => {
     }
 });
 
-socket.on("call-rejected", data => {
-    alert(`User: "Socket: ${data.socket}" rejected your call.`);
-    unselectUsersFromList();
-});
-
 peerConnection.ontrack = function ({streams: [stream]}) {
     if (remoteVideo) {
         remoteVideo.srcObject = stream;
         remoteVideo.play();
-        startDetectBody()
+        startDetectBody();
     }
+    switchToVideo();
 };
 
 navigator.getUserMedia(
-    {video: true, audio: false},
+    { video: { width: 640, height: 480 }, audio: false },
     stream => {
         if (localVideo) {
             localVideo.srcObject = stream;
-            localVideo.play()
+            localVideo.play();
         }
         stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
     },
