@@ -21,11 +21,13 @@ const socket = io.connect(serverAddress);
 function switchToVideo() {
     document.getElementById("welcome").style.display = "none";
     document.getElementById("video-chat-container").style.display = "block";
+    document.getElementById("logo-text").innerHTML = 'fe<span class="logo-highlight">at</span><span class="end">uring</span>'
 }
 
 function switchToWelcome() {
     document.getElementById("video-chat-container").style.display = "none";
     document.getElementById("welcome").style.display = "block";
+    document.getElementById("logo-text").innerHTML = 'fe<span class="logo-highlight">at</span>'
 }
 
 async function callUser(socketId) {

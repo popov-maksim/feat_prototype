@@ -39,7 +39,7 @@ window.requestAnimFrame = (function () {
 })();
 
 function drawBody(personSegmentation) {
-    ctx.drawImage(remoteVideo, 0, 0);
+    ctx.drawImage(remoteVideo, 0, 0, remoteVideo.width, remoteVideo.height);
     let remoteImageData = ctx.getImageData(0, 0, remoteVideo.width, remoteVideo.height);
     let remotePixels = remoteImageData.data;
 
@@ -60,5 +60,5 @@ function drawBody(personSegmentation) {
         }
     }
 
-    ctx.putImageData(remoteImageData, 0, 0);
+    ctx.putImageData(remoteImageData, 0, 0, 0, 0, remoteVideo.width, remoteVideo.height);
 }
