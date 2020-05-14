@@ -1,7 +1,6 @@
 body {
     margin: 0;
     padding: 0;
-    height: 100%;
     font-family: "Montserrat", sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -10,12 +9,13 @@ body {
 }
 
 .header {
+    background-color: #ffffff;
     padding: 10px 40px;
-    width: 50%;
-    margin: auto;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
 .header > .logo-container {
+    display: flex;
     align-items: center;
 }
 
@@ -25,46 +25,59 @@ body {
 }
 
 .header > .logo-container > .logo-text > .logo-highlight {
-    font-size: 30px
+    color: #65a9e5;
+    font-size: 30px;
 }
 
 .content-container {
-    height: 500px;
-    background-color: rgb(46, 51, 53);
-    width: 80%;
-    margin: auto;
-    border-radius: 5px;
+    width: 100%;
+    height: calc(100vh - 89px);
+    display: flex;
+    justify-content: space-between;
+    overflow: hidden;
 }
 
-.welcome {
-    width: 50%;
-    margin: auto;
-    text-align: center;
-    padding-top: 20px;
+.active-users-panel {
+    width: 300px;
+    height: 100%;
+    border-right: 1px solid #cddfe7;
 }
 
-img {
-    margin: auto;
-    padding-top: 100px;
-    width: 50%;
+.panel-title {
+    margin: 10px 0 0 0;
+    padding-left: 30px;
+    font-weight: 500;
+    font-size: 18px;
+    border-bottom: 1px solid #cddfe7;
+    padding-bottom: 10px;
 }
 
-.button {
-    text-align: center;
-    width: 50%;
-    margin: auto;
+.active-user {
+    padding: 10px 30px;
+    border-bottom: 1px solid #cddfe7;
+    cursor: pointer;
+    user-select: none;
+}
+
+.active-user:hover {
+    background-color: #e8e9eb;
+    transition: background-color 0.5s ease;
+}
+
+.active-user--selected {
+    background-color: #fff;
+    border-right: 5px solid #65a9e5;
+    font-weight: 500;
+    transition: all 0.5s ease;
 }
 
 .video-chat-container {
     padding: 0 20px;
-    text-align: center;
+    flex: 1;
+    position: relative;
 }
 
-canvas {
-    padding-top: 5px;
-    border-radius: 3px;
-}
-
-.end {
-    color: rgb(92, 92, 187);
+.talk-info {
+    font-weight: 500;
+    font-size: 21px;
 }

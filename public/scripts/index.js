@@ -1,5 +1,5 @@
-// for making call
 let isAlreadyCalling = false;
+let getCalled = false;
 
 // for transferring remote-video to canvas
 const canvas = document.getElementById('canvas');
@@ -9,25 +9,40 @@ const remoteVideo = document.getElementById('remote-video');
 // for getting localVideo
 const localVideo = document.getElementById('local-video');
 
-// for transferring video through WebRTC
 const { RTCPeerConnection, RTCSessionDescription } = window;
 const peerConnection = new RTCPeerConnection();
-const serverAddress = "localhost:5000";
 
-// communication with server and another clients
+function unselectUsersFromList() {
+    const alreadySelectedUser = document.querySelectorAll(
+        ".active-user.active-user--selected"
+    );
 
-const socket = io.connect(serverAddress);
-
-function switchToVideo() {
-    document.getElementById("welcome").style.display = "none";
-    document.getElementById("video-chat-container").style.display = "block";
-    document.getElementById("logo-text").innerHTML = 'fe<span class="logo-highlight">at</span><span class="end">uring</span>'
+    alreadySelectedUser.forEach(el => {
+        el.setAttribute("class", "active-user");
+    });
 }
 
-function switchToWelcome() {
-    document.getElementById("video-chat-container").style.display = "none";
-    document.getElementById("welcome").style.display = "block";
-    document.getElementById("logo-text").innerHTML = 'fe<span class="logo-highlight">at</span>'
+function createUserItemContainer(socketId) {
+    const userContainerEl = document.createElement("div");
+
+    const usernameEl = document.createElement("p");
+
+    userContainerEl.setAttribute("class", "active-user");
+    userContainerEl.setAttribute("id", socketId);
+    usernameEl.setAttribute("class", "username");
+    usernameEl.innerHTML = `Socket: ${socketId}`;
+
+    userContainerEl.appendChild(usernameEl);
+
+    userContainerEl.addEventListener("click", () => {
+        unselectUsersFromList();
+        userContainerEl.setAttribute("class", "active-user active-user--selected");
+        const talkingWithInfo = document.getElementById("talking-with-info");
+        talkingWithInfo.innerHTML = `Featuring with: "Socket: ${socketId}"`;
+        callUser(socketId);
+    });
+
+    return userContainerEl;
 }
 
 async function callUser(socketId) {
@@ -40,16 +55,51 @@ async function callUser(socketId) {
     });
 }
 
-socket.on("connected-user", async data => {
-    callUser(data.socket)
+function updateUserList(socketIds) {
+    const activeUserContainer = document.getElementById("active-user-container");
+
+    socketIds.forEach(socketId => {
+        const alreadyExistingUser = document.getElementById(socketId);
+        if (!alreadyExistingUser) {
+            const userContainerEl = createUserItemContainer(socketId);
+
+            activeUserContainer.appendChild(userContainerEl);
+        }
+    });
+}
+
+const socket = io();
+
+socket.on("update-user-list", ({ users }) => {
+    updateUserList(users);
 });
 
-socket.on("disconnected-user", async data => {
-    switchToWelcome();
+socket.on("remove-user", ({ socketId }) => {
+    const elToRemove = document.getElementById(socketId);
+
+    if (elToRemove) {
+        elToRemove.remove();
+    }
 });
 
 socket.on("call-made", async data => {
-    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+    if (getCalled) {
+        const confirmed = confirm(
+            `User "Socket: ${data.socket}" wants to call you. Do accept this call?`
+        );
+
+        if (!confirmed) {
+            socket.emit("reject-call", {
+                from: data.socket
+            });
+
+            return;
+        }
+    }
+
+    await peerConnection.setRemoteDescription(
+        new RTCSessionDescription(data.offer)
+    );
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
 
@@ -57,6 +107,7 @@ socket.on("call-made", async data => {
         answer,
         to: data.socket
     });
+    getCalled = true;
 });
 
 socket.on("answer-made", async data => {
@@ -70,18 +121,24 @@ socket.on("answer-made", async data => {
     }
 });
 
-peerConnection.ontrack = function ({streams: [stream]}) {
+socket.on("call-rejected", data => {
+    alert(`User: "Socket: ${data.socket}" rejected your call.`);
+    unselectUsersFromList();
+});
+
+peerConnection.ontrack = function({ streams: [stream] }) {
+    const remoteVideo = document.getElementById("remote-video");
     if (remoteVideo) {
         remoteVideo.srcObject = stream;
         remoteVideo.play();
         startDetectBody();
     }
-    switchToVideo();
 };
 
 navigator.getUserMedia(
-    { video: { width: 640, height: 480 }, audio: false },
+    { video: true, audio: false },
     stream => {
+        const localVideo = document.getElementById("local-video");
         if (localVideo) {
             localVideo.srcObject = stream;
             localVideo.play();
@@ -92,4 +149,3 @@ navigator.getUserMedia(
         console.warn(error.message);
     }
 );
-

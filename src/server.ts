@@ -40,15 +40,19 @@ export class Server {
         this.io.on("connection", socket => {
             const existingSocket = this.activeSockets.find(
                 existingSocket => existingSocket === socket.id
-            )
+            );
 
             if (!existingSocket) {
                 this.activeSockets.push(socket.id);
-            }
 
-            if (this.activeSockets.length == 2) {
-                socket.to(this.activeSockets[0]).emit("connected-user", {
-                    socket: socket.id
+                socket.emit("update-user-list", {
+                    users: this.activeSockets.filter(
+                        existingSocket => existingSocket !== socket.id
+                    )
+                });
+
+                socket.broadcast.emit("update-user-list", {
+                    users: [socket.id]
                 });
             }
 
@@ -66,11 +70,17 @@ export class Server {
                 });
             });
 
+            socket.on("reject-call", data => {
+                socket.to(data.from).emit("call-rejected", {
+                    socket: socket.id
+                });
+            });
+
             socket.on("disconnect", () => {
                 this.activeSockets = this.activeSockets.filter(
                     existingSocket => existingSocket !== socket.id
                 );
-                socket.broadcast.emit("disconnected-user", {
+                socket.broadcast.emit("remove-user", {
                     socketId: socket.id
                 });
             });
